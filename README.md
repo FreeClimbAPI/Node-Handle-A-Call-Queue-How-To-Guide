@@ -1,4 +1,4 @@
-# Node Inbound Call Queue Tutorial
+# Node Handle A Call Queue How-To Guide
 
 This project serves as a guide to help you build an application with FreeClimb. View this tutorial on [FreeClimb.com](https://docs.freeclimb.com/docs/inbound-call-queue#section-nodejs). Specifically, the project will:
 
@@ -10,7 +10,7 @@ This project serves as a guide to help you build an application with FreeClimb. 
 
 To get started using a FreeClimb account, follow the instructions [here](https://docs.freeclimb.com/docs/getting-started-with-freeclimb).
 
-## Setting up the Inbound Call Queue Tutorial
+## Setting up the inbound call queue how-to guide
 
 1. Install the node packages necessary using command:
 
@@ -18,7 +18,7 @@ To get started using a FreeClimb account, follow the instructions [here](https:/
    $ yarn install
    ```
 
-2. Configure environment variables (this tutorial uses the [dotenv package](https://www.npmjs.com/package/dotenv)).
+2. Configure environment variables (this how-to guide uses the [dotenv package](https://www.npmjs.com/package/dotenv)).
 
    | ENV VARIABLE            | DESCRIPTION                                                                                                                                                                             |
    | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -27,7 +27,7 @@ To get started using a FreeClimb account, follow the instructions [here](https:/
    | HOST | The host url where your application is hosted (e.g. yourHostedApp.com) |
 
 
-## Runnning the Tutorial
+## Runnning the how-to guide
 
 1. Run the application using command:
 
