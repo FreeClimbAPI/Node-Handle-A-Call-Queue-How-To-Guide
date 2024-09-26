@@ -56,8 +56,8 @@ app.post('/callDequeue', (req, res) => {
     const percl = freeclimb.percl.build(dequeue)
     res.status(200).json(percl)
   } else {
-    const redirect = freeclimb.percl.redirect(`${host}/inboundCallWait`)
-    const percl = freeclimb.percl.build(redirect)
+    const say = freeclimb.percl.say('No key pressed. Staying in queue.')
+    const percl = freeclimb.percl.build(say)
     res.status(200).json(percl)
   }
 })
