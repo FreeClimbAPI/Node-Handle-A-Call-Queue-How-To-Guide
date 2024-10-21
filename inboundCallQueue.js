@@ -2,6 +2,7 @@ require('dotenv').config()
 const express = require('express')
 const bodyParser = require('body-parser')
 const freeclimbSDK = require('@freeclimb/sdk')
+const { PerclScript, Enqueue, GetDigits, Say, Dequeue, Redirect } = require('@freeclimb/sdk')
 
 const app = express()
 app.use(bodyParser.json())
@@ -11,61 +12,60 @@ const port = process.env.PORT || 80
 // your freeclimb API key (available in the Dashboard) - be sure to set up environment variables to store these values
 const accountId = process.env.ACCOUNT_ID
 const apiKey = process.env.API_KEY
-const freeclimb = freeclimbSDK(accountId, apiKey)
+const configuration = freeclimbSDK.createConfiguration({ accountId, apiKey })
+const freeclimb = new freeclimbSDK.DefaultApi(configuration)
 
 app.post('/incomingCall', (req, res) => {
-  const options = {
-    alias: 'Test',
-    maxSize: 25
-  }
-  //Invoke method to create a queue with the options provided
-  freeclimb.api.queues.create(options).then(queue => {
-    // use created queue
-    const enqueue = freeclimb.percl.enqueue(queue.queueId, `${host}/inboundCallAction`, `${host}/inboundCallWait`)
-    const percl = freeclimb.percl.build(enqueue)
-    res.status(200).json(percl)
-  }).catch(err => { /* Handle Errors */ })
+  freeclimb.createAQueue({ alias: 'Test', maxSize: 25 })
+    .then(queue => {
+      res.status(200).json(new PerclScript({
+        commands: [
+          new Enqueue({ queueId: queue.queueId, actionUrl: `${host}/inboundCallAction`, waitUrl: `${host}/inboundCallWait` })
+        ]
+      }).build())
+    }).catch(err => {
+      console.log(err)
+    })
 })
 
 app.post('/inboundCallWait', (req, res) => {
-  const queueId = req.params.queueId
-  const callId = req.body.callId
-
-  // Create PerCL say script
-  const say = freeclimb.percl.say('Press any key to exit queue.')
-  // Create options for getDigits script
-  const prompts = freeclimb.percl.build(say)
-  const options = {
-    prompts,
-    maxDigits: 1,
-    minDigits: 1,
-    flushBuffer: true
-  }
-  // Create PerCL for getDigits script
-  const getDigits = freeclimb.percl.getDigits(`${host}/callDequeue`, options)
-  // Build and respond with Percl script
-  const percl = freeclimb.percl.build(getDigits)
-  res.status(200).json(percl)
+  res.status(200).json(new PerclScript({
+    commands: [
+      new GetDigits({
+        prompts: [
+          new Say({ text: "Press any key to exit queue." })
+        ],
+        maxDigits: 1,
+        minDigits: 1,
+        flushBuffer: true,
+        actionUrl: `${host}/callDequeue`
+      })
+    ]
+  }).build())
 })
 
 app.post('/callDequeue', (req, res) => {
-  const getDigitsResponse = req.body
-  const digits = getDigitsResponse.digits
-  if (digits && digits.length > 0) {
-    const dequeue = freeclimb.percl.dequeue()
-    const percl = freeclimb.percl.build(dequeue)
-    res.status(200).json(percl)
+  if (req.body.digits && req.body.digits.length > 0) {
+    res.status(200).json(new PerclScript({
+      commands: [
+        new Dequeue()
+      ]
+    }).build())
   } else {
-    const redirect = freeclimb.percl.redirect(`${host}/inboundCallWait`)
-    const percl = freeclimb.percl.build(redirect)
-    res.status(200).json(percl)
+    res.status(200).json(new PerclScript({
+      commands: [
+        new Redirect({ actionUrl: `${host}/inboundCallWait` })
+      ]
+    }).build())
   }
 })
 
 app.post('/inboundCallAction', (req, res) => {
-  const say = freeclimb.percl.say('Call exited queue')
-  const percl = freeclimb.percl.build(say)
-  res.status(200).json(percl)
+  res.status(200).json(new PerclScript({
+    commands: [
+      new Say({ text: "Call exited queue" })
+    ]
+  }).build())
 })
 
 // Specify this route with 'Status Callback URL' in App Config
